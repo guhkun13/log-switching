@@ -24,17 +24,17 @@ func Connect() *DB {
 	dsn := fmt.Sprintf("host=%s port=%d dbname=%s user=%s password=%s sslmode=%s", host, port, dbname, user, password, sslmode)
 	conn, err := sql.Open("postgres", dsn)
 	panicOnErr(err)
-	defer conn.Close()
 
-	// err = conn.Ping()
-	// checkErr(err)
+	err = conn.Ping()
+	panicOnErr(err)
 
 	fmt.Println("DB Connected Successfully")
 	return &DB{db: conn}
 }
 
 func (d DB) GetLatestInquiryRecords() ([]Inquiry, error) {
-	// query
+	var inquirys []Inquiry
+
 	sql := "select ts, ts_resp, rc, biller, subbiller, id_byr, nama from inquiry order by ts desc limit 10"
 	rows, err := d.db.Query(sql)
 	if err != nil {
@@ -42,10 +42,6 @@ func (d DB) GetLatestInquiryRecords() ([]Inquiry, error) {
 	}
 	defer rows.Close()
 
-	// prepare
-	var inquirys []Inquiry
-
-	fmt.Println(rows)
 	// loop through
 	for rows.Next() {
 		var inq Inquiry
@@ -53,7 +49,6 @@ func (d DB) GetLatestInquiryRecords() ([]Inquiry, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		inquirys = append(inquirys, inq)
 	}
 	err = rows.Err()

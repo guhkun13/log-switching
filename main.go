@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/go-chi/chi/v5"
@@ -11,21 +10,6 @@ import (
 	"log"
 	"net/http"
 )
-
-/** Handler Here **/
-
-func rootHandler(rw http.ResponseWriter, r *http.Request) {
-	rw.Write([]byte("Halo"))
-}
-
-func inquiryHandler(rw http.ResponseWriter, r *http.Request) {
-	db := Connect()
-	inquirys, err := db.GetLatestInquiryRecords()
-	panicOnErr(err)
-
-	response, _ := json.Marshal(inquirys)
-	rw.Write(response)
-}
 
 /** Main **/
 func main() {
