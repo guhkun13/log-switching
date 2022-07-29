@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 
 	_ "github.com/lib/pq"
 )
@@ -32,10 +33,39 @@ func Connect() *DB {
 	return &DB{db: conn}
 }
 
-func (d DB) GetLatestInquiryRecords() ([]Inquiry, error) {
+func (d DB) Close() {
+	defer d.db.Close()
+}
+
+func (d DB) GetLatestInquiryRecords(r *http.Request) ([]Inquiry, error) {
 	var inquirys []Inquiry
 
-	sql := "select ts, ts_resp, rc, biller, subbiller, id_byr, nama from inquiry order by ts desc limit 10"
+	var (
+		limit      string
+		biller     string
+		subbiller  string
+		kodeBiller string
+	)
+
+	limit = r.URL.Query().Get("limit")
+	kodeBiller = r.URL.Query().Get("biller")
+
+	if limit == "" {
+		limit = "10"
+	}
+	sql := "select ts, ts_resp, rc, biller, subbiller, id_byr, nama from inquiry "
+	if len(kodeBiller) == 8 {
+		biller = kodeBiller[:4]
+		subbiller = kodeBiller[4:]
+	}
+	sql += " where biller = '" + biller + "'"
+	if subbiller != "" {
+		sql += " and subbiller = '" + subbiller + "'"
+
+	}
+	sql += " order by ts desc limit " + limit
+
+	fmt.Println(sql)
 	rows, err := d.db.Query(sql)
 	if err != nil {
 		return nil, err
@@ -56,5 +86,6 @@ func (d DB) GetLatestInquiryRecords() ([]Inquiry, error) {
 		return nil, err
 	}
 
+	d.Close()
 	return inquirys, nil
 }

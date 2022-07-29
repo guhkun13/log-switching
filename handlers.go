@@ -11,7 +11,7 @@ func rootHandler(rw http.ResponseWriter, r *http.Request) {
 
 func inquiryHandler(rw http.ResponseWriter, r *http.Request) {
 	db := Connect()
-	inquirys, err := db.GetLatestInquiryRecords()
+	inquirys, err := db.GetLatestInquiryRecords(r)
 	panicOnErr(err)
 
 	response, _ := json.Marshal(inquirys)
