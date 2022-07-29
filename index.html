@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=Unicode">
+  
+  <title> Log </title>
+  
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+  
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+  
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+  
+</head>
+<body>  
+  <div style="margin: 2% 5%;">
+    <div class="row">
+      <h2> Filter Log </h2>
+      <div class="panel panel-primary">        
+        <div class="panel-body">
+          <form action="/log" method="get">
+            <select name="action">
+              <option value="inquiry" {{if eq .Filter.Action "inquiry"}} selected {{ end}}> 
+                INQUIRY 
+              </option>
+              <option value="payment" {{if eq .Filter.Action "payment"}} selected {{ end}}> 
+                PAYMENT 
+              </option>
+            </select>
+            <select name="limit">
+              <option value="10" {{if eq .Filter.Limit "10"}} selected {{ end}}> 10 </option>
+              <option value="50" {{if eq .Filter.Limit "50"}} selected {{ end}}> 50 </option>
+              <option value="100" {{if eq .Filter.Limit "100"}} selected {{ end}}> 100 </option>
+            </select>
+            <input type="submit" value="Filter">
+          </form>      
+        </div>
+        <div class="panel-footer">
+          Filtered :
+          {{ if eq .Status false }}          
+          <div class="panel panel-danger">
+            <div class="panel-body">
+              <p> {{ .Message}}</p>
+            </div>            
+          </div>          
+          {{ end }}
+          <li> action : {{.Filter.Action}} </li>
+          <li> rows : {{.Filter.Limit}} </li>
+        </div>
+      </div>
+    </div>    
+    <div class="row">
+      <h2> Result </h2>
+      <table class="table table-striped table-bordered table-hover">
+        <thead>
+          <th> TS </th>
+          <th> Tipe </th>
+          <th> Biller </th>
+          <th> ID Bayar </th>
+          <th> Nama </th>
+          <th> Bank</th>
+          <th> Channel</th>
+          <th> Terminal</th>
+          <th> RC </th>
+          <th> Elapsed Time </th>
+          
+        </thead>
+        {{if .Data }}
+        {{ range .Data }}
+        <tr>
+          <td> {{.Ts.Format "2006-01-02 15:04:05" }} </td>
+          <td> {{ getBillerType .Biller .Subbiller.String}} </td>
+          <!-- <td> 
+            {{ if eq .TsResp.Valid false }}
+            "-"
+            {{ else }}
+            {{.TsResp.Time.Format "2006-01-02 15:04:05" }} 
+            {{ end }}
+          </td> -->
+          <td> {{.Biller }}{{.Subbiller.String}} </td>
+          <td> {{.IdByr }} </td>
+          <td> {{.Nama.String }} </td>
+          <td> {{.Bank}}</td>
+          <td> {{.Channel}} </td>
+          <td> {{.Terminal}} </td>
+          <td> {{.RC.String }} </td>
+          <td> 
+            {{ if eq .ElapsedTime.Valid false }}
+            -
+            {{ else }}
+            {{.ElapsedTime.String }}
+            {{ end }}
+          </td>
+        </tr>
+        {{ end }}
+        
+        {{ else }}
+        <tr>
+          <td> No data was found </td>
+        </tr>
+        {{ end }}
+      </table>
+    </div>    
+  </div>
+  
+</body>
+</html>

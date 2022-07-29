@@ -3,8 +3,29 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"net/http"
 	"reflect"
 )
+
+func buildFilter(r *http.Request) QueryFilter {
+	var filter QueryFilter
+	action := r.URL.Query().Get("action")
+	limit := r.URL.Query().Get("limit")
+	kodeBiller := r.URL.Query().Get("biller")
+
+	if limit == "" {
+		limit = limitQuery
+	}
+
+	if len(kodeBiller) == 8 {
+		filter.Biller = kodeBiller[:4]
+		filter.Subbiller = kodeBiller[4:]
+	}
+	filter.Limit = limit
+	filter.Action = action
+
+	return filter
+}
 
 func panicOnErr(err error) {
 	if err != nil {

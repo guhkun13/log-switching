@@ -23,6 +23,7 @@ func main() {
 
 	// start handler
 	chi.Get("/", rootHandler)
+	chi.Get("/log", logHandler)
 	chi.Get("/inquiry", inquiryHandler)
 
 	// start server
