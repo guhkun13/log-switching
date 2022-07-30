@@ -47,20 +47,39 @@ func buildFilter(r *http.Request) QueryFilter {
 	return filter
 }
 
-func validateFilter(f QueryFilter) error {
-	// validate kodeBiller
+func (f QueryFilter) ValidateKodeBiller() error {
 	lenKodeBiller := len(f.KodeBiller)
-	if f.KodeBiller != "" && (lenKodeBiller != 4 || lenKodeBiller == 8) {
-		return errors.New("invalid biller length. Must be 4 or 8")
-	}
-	if _, err := strconv.Atoi(f.KodeBiller); err != nil {
-		return errors.New("invalid biller format. Must be int")
+	if f.KodeBiller != "" {
+		if lenKodeBiller != 4 || lenKodeBiller == 8 {
+			return errors.New("invalid biller length. Must be 4 or 8")
+		}
+		if _, err := strconv.Atoi(f.KodeBiller); err != nil {
+			return errors.New("invalid biller format. Must be int")
+		}
 	}
 
+	return nil
+}
+
+func (f QueryFilter) ValidateActions() error {
 	// validate action
 	validActions := GetValidActions()
 	if exist := slices.Contains(validActions, f.Action); !exist {
 		return errors.New("invalid action. Must be INQUIRY or PAYMENT")
+	}
+	return nil
+}
+
+func (f QueryFilter) ValidateInput() error {
+	// validate kodeBiller
+	err := f.ValidateKodeBiller()
+	if err != nil {
+		return err
+	}
+
+	err = f.ValidateActions()
+	if err != nil {
+		return err
 	}
 
 	return nil

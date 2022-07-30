@@ -29,7 +29,7 @@ func logHandler(rw http.ResponseWriter, r *http.Request) {
 	ctx.Filter = filter
 	ctx.Status = true
 
-	errVal := validateFilter(filter)
+	errVal := filter.ValidateInput()
 	if errVal != nil {
 		ctx.Status = false
 		ctx.Message = errVal.Error()
