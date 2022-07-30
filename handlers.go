@@ -27,26 +27,7 @@ const (
 var tmpl *template.Template
 
 func logHandler(rw http.ResponseWriter, r *http.Request) {
-	var err error
-	tmpl, err = template.ParseGlob("./tmpl/*")
-	if err != nil {
-		panicOnErr(err)
-	}
-
-	// tmpl, err := template.New("index.html").Funcs(
-	// 	template.FuncMap{
-	// 		"getBillerType": func(biller string, subbiller string) string {
-	// 			if subbiller != "" {
-	// 				return "P2H"
-	// 			}
-	// 			return "H2H"
-	// 		},
-	// 	},
-	// ).ParseFiles("tmpl/index.html")
-	// panicOnErr(err)
-
 	var ctx HtmlCtx
-
 	filter := buildFilter(r)
 	fmt.Println(filter)
 	ctx.Filter = filter
@@ -65,7 +46,25 @@ func logHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 	ctx.Data = data
 
-	tmpl.ExecuteTemplate(rw, "base.html", ctx)
+	// urus html
+	funcMap := template.FuncMap{
+		"getType": GetType,
+	}
+
+	var err error
+	tmpl, err = template.New("").Funcs(funcMap).ParseGlob("./tmpl/*")
+	panicOnErr(err)
+
+	tmpl.ExecuteTemplate(rw, "content", ctx)
+	tmpl.ExecuteTemplate(rw, "header", nil)
+	tmpl.ExecuteTemplate(rw, "footer", nil)
+}
+
+func GetType(subbiller string) string {
+	if len(subbiller) > 0 {
+		return "P2H"
+	}
+	return "H2H"
 }
 
 func inquiryHandler(rw http.ResponseWriter, r *http.Request) {
