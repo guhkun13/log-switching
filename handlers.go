@@ -24,26 +24,33 @@ const (
 	ACT_PAYMENT = "payment"
 )
 
+var tmpl *template.Template
+
 func logHandler(rw http.ResponseWriter, r *http.Request) {
-	// tmpl := template.Must(template.ParseFiles("index.html"))
+	var err error
+	tmpl, err = template.ParseGlob("./tmpl/*")
+	if err != nil {
+		panicOnErr(err)
+	}
 
-	tmpl, err := template.New("index.html").Funcs(
-		template.FuncMap{
-			"getBillerType": func(biller string, subbiller string) string {
-				if subbiller != "" {
-					return "P2H"
-				}
-				return "H2H"
-			},
-		},
-	).ParseFiles("index.html")
+	// tmpl, err := template.New("index.html").Funcs(
+	// 	template.FuncMap{
+	// 		"getBillerType": func(biller string, subbiller string) string {
+	// 			if subbiller != "" {
+	// 				return "P2H"
+	// 			}
+	// 			return "H2H"
+	// 		},
+	// 	},
+	// ).ParseFiles("tmpl/index.html")
+	// panicOnErr(err)
 
-	panicOnErr(err)
 	var ctx HtmlCtx
 
 	filter := buildFilter(r)
 	fmt.Println(filter)
 	ctx.Filter = filter
+	ctx.Status = true
 
 	var data []Inquiry
 	if filter.Action == ACT_INQUIRY {
@@ -58,7 +65,7 @@ func logHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 	ctx.Data = data
 
-	tmpl.Execute(rw, ctx)
+	tmpl.ExecuteTemplate(rw, "base.html", ctx)
 }
 
 func inquiryHandler(rw http.ResponseWriter, r *http.Request) {
