@@ -4,10 +4,24 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"golang.org/x/exp/slices"
 	"net/http"
 	"reflect"
 	"strconv"
 )
+
+const (
+	ACT_INQUIRY = "inquiry"
+	ACT_PAYMENT = "payment"
+)
+
+func GetValidActions() []string {
+	result := make([]string, 2)
+	result = append(result, ACT_INQUIRY)
+	result = append(result, ACT_PAYMENT)
+
+	return result
+}
 
 func buildFilter(r *http.Request) QueryFilter {
 	var filter QueryFilter
@@ -33,11 +47,8 @@ func buildFilter(r *http.Request) QueryFilter {
 	return filter
 }
 
-type Status bool
-type Err error
-
-func validateFilter(f QueryFilter) Err {
-	// validate len of kodeBiller
+func validateFilter(f QueryFilter) error {
+	// validate kodeBiller
 	lenKodeBiller := len(f.KodeBiller)
 	if f.KodeBiller != "" && (lenKodeBiller != 4 || lenKodeBiller == 8) {
 		return errors.New("invalid biller length. Must be 4 or 8")
@@ -45,6 +56,13 @@ func validateFilter(f QueryFilter) Err {
 	if _, err := strconv.Atoi(f.KodeBiller); err != nil {
 		return errors.New("invalid biller format. Must be int")
 	}
+
+	// validate action
+	validActions := GetValidActions()
+	if exist := slices.Contains(validActions, f.Action); !exist {
+		return errors.New("invalid action. Must be INQUIRY or PAYMENT")
+	}
+
 	return nil
 }
 
@@ -53,8 +71,6 @@ func panicOnErr(err error) {
 		panic(err)
 	}
 }
-
-type NullString sql.NullString
 
 func (ns *NullString) Scan(value interface{}) error {
 	var s sql.NullString
@@ -78,8 +94,6 @@ func (ns *NullString) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(ns.String)
 }
-
-type NullTime sql.NullTime
 
 func (ns *NullTime) Scan(value interface{}) error {
 	var s sql.NullTime

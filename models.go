@@ -1,6 +1,12 @@
 package main
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
+
+type NullString sql.NullString
+type NullTime sql.NullTime
 
 type Inquiry struct {
 	Ts          time.Time  `json:"ts"`
@@ -22,4 +28,12 @@ type QueryFilter struct {
 	KodeBiller string
 	Biller     string
 	Subbiller  string
+}
+
+type HtmlCtx struct {
+	Data    interface{}
+	Filter  QueryFilter
+	Error   error
+	Status  bool
+	Message string
 }

@@ -11,19 +11,6 @@ func rootHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.Write([]byte("Halo"))
 }
 
-type HtmlCtx struct {
-	Data    interface{}
-	Filter  QueryFilter
-	Error   error
-	Status  bool
-	Message string
-}
-
-const (
-	ACT_INQUIRY = "inquiry"
-	ACT_PAYMENT = "payment"
-)
-
 func logHandler(rw http.ResponseWriter, r *http.Request) {
 
 	filter := buildFilter(r)
@@ -56,11 +43,6 @@ func logHandler(rw http.ResponseWriter, r *http.Request) {
 		data = apiGetInquiry(r)
 	} else if filter.Action == ACT_PAYMENT {
 		data = apiGetPayment(r)
-	} else {
-		fmt.Println("ERROR invalid action")
-		data = nil
-		ctx.Status = false
-		ctx.Message = "Action not valid"
 	}
 	ctx.Data = data
 	tmpl.ExecuteTemplate(rw, "content", ctx)
