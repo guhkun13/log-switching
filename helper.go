@@ -3,28 +3,49 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"reflect"
+	"strconv"
 )
 
 func buildFilter(r *http.Request) QueryFilter {
 	var filter QueryFilter
 	action := r.URL.Query().Get("action")
 	limit := r.URL.Query().Get("limit")
-	kodeBiller := r.URL.Query().Get("biller")
+	kodeBiller := r.URL.Query().Get("kodeBiller")
 
 	if limit == "" {
 		limit = limitQuery
 	}
-
-	if len(kodeBiller) == 8 {
-		filter.Biller = kodeBiller[:4]
-		filter.Subbiller = kodeBiller[4:]
+	if kodeBiller != "" {
+		if len(kodeBiller) == 8 {
+			filter.Biller = kodeBiller[:4]
+			filter.Subbiller = kodeBiller[4:]
+		} else {
+			filter.Biller = kodeBiller
+		}
 	}
 	filter.Limit = limit
 	filter.Action = action
+	filter.KodeBiller = kodeBiller
 
 	return filter
+}
+
+type Status bool
+type Err error
+
+func validateFilter(f QueryFilter) Err {
+	// validate len of kodeBiller
+	lenKodeBiller := len(f.KodeBiller)
+	if f.KodeBiller != "" && (lenKodeBiller != 4 || lenKodeBiller == 8) {
+		return errors.New("invalid biller length. Must be 4 or 8")
+	}
+	if _, err := strconv.Atoi(f.KodeBiller); err != nil {
+		return errors.New("invalid biller format. Must be int")
+	}
+	return nil
 }
 
 func panicOnErr(err error) {

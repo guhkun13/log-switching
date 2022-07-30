@@ -24,14 +24,32 @@ const (
 	ACT_PAYMENT = "payment"
 )
 
-var tmpl *template.Template
-
 func logHandler(rw http.ResponseWriter, r *http.Request) {
-	var ctx HtmlCtx
+
 	filter := buildFilter(r)
 	fmt.Println(filter)
+
+	// urus html
+	funcMap := template.FuncMap{
+		"getType": GetType,
+	}
+
+	tmpl, err := template.New("").Funcs(funcMap).ParseGlob("./tmpl/*")
+	panicOnErr(err)
+	tmpl.ExecuteTemplate(rw, "header", nil)
+
+	var ctx HtmlCtx
 	ctx.Filter = filter
 	ctx.Status = true
+
+	errVal := validateFilter(filter)
+	if errVal != nil {
+		ctx.Status = false
+		ctx.Message = errVal.Error()
+		tmpl.ExecuteTemplate(rw, "content", ctx)
+		tmpl.ExecuteTemplate(rw, "footer", nil)
+		return
+	}
 
 	var data []Inquiry
 	if filter.Action == ACT_INQUIRY {
@@ -45,18 +63,7 @@ func logHandler(rw http.ResponseWriter, r *http.Request) {
 		ctx.Message = "Action not valid"
 	}
 	ctx.Data = data
-
-	// urus html
-	funcMap := template.FuncMap{
-		"getType": GetType,
-	}
-
-	var err error
-	tmpl, err = template.New("").Funcs(funcMap).ParseGlob("./tmpl/*")
-	panicOnErr(err)
-
 	tmpl.ExecuteTemplate(rw, "content", ctx)
-	tmpl.ExecuteTemplate(rw, "header", nil)
 	tmpl.ExecuteTemplate(rw, "footer", nil)
 }
 
